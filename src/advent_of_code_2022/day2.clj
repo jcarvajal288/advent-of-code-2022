@@ -27,13 +27,49 @@
 (defn- play-round [round]
   (let [their-move (first round)
         my-move (last round)]
-    ;(log/info (str their-move " <> " my-move))
-    ;(log/info (result-score their-move my-move))
-    ;(log/info (move-score my-move))
     (+ (result-score their-move my-move) (move-score my-move))))
 
 (defn calculate-score [file]
   (let [guide (vec (get-resource-file-by-line file))]
-    ;(log/info guide)
     (reduce + (map play-round guide))))
+
+
+(defn- result-score-2 [needed-result]
+  (cond
+    (= needed-result \X) 0
+    (= needed-result \Y) 3
+    (= needed-result \Z) 6
+    :else 888
+  ))
+
+; A - rock       X - lose
+; B - paper      Y - draw
+; C - scissors   Z - win
+
+; rock - 1
+; paper - 2
+; scissors - 3
+
+(defn- move-score-2 [their-move needed-result]
+  (cond
+    (and (= their-move \A) (= needed-result \X)) 3
+    (and (= their-move \A) (= needed-result \Y)) 1
+    (and (= their-move \A) (= needed-result \Z)) 2
+    (and (= their-move \B) (= needed-result \X)) 1
+    (and (= their-move \B) (= needed-result \Y)) 2
+    (and (= their-move \B) (= needed-result \Z)) 3
+    (and (= their-move \C) (= needed-result \X)) 2
+    (and (= their-move \C) (= needed-result \Y)) 3
+    (and (= their-move \C) (= needed-result \Z)) 1
+    :else 999
+    ))
+
+(defn- play-round-2 [round]
+  (let [their-move (first round)
+        needed-result (last round)]
+    (+ (result-score-2 needed-result) (move-score-2 their-move needed-result))))
+
+(defn calculate-score-2 [file]
+  (let [guide (vec (get-resource-file-by-line file))]
+    (reduce + (map play-round-2 guide))))
 

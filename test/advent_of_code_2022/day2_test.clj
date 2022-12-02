@@ -15,3 +15,6 @@
   (testing "day2-part2-sample-test"
     (is (= (calculate-score-2 "day2-example-data.txt") 12))))
 
+(deftest day2-part2-full-test
+  (testing "day2-part2-full-test"
+    (is (= (calculate-score-2 "day2-full-data.txt") 13490))))
