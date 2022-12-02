@@ -12,10 +12,20 @@
     [[(str-to-int (first all-calorie-lists))]]
     (rest all-calorie-lists)))
 
-(defn most-carried-calories [file]
-  (let [all-calorie-lists (vec (get-resource-file-by-line file))]
+(defn- summed-calories [all-calorie-lists]
     (->> all-calorie-lists
          (split-at-blanks)
-         (map (partial reduce +))
-         (reduce max))))
+         (map (partial reduce +))))
+
+(defn most-carried-calories [file]
+  (let [all-calorie-lists (vec (get-resource-file-by-line file))]
+    (reduce max (summed-calories all-calorie-lists))))
+
+(defn sum-top3-carried-calories [file]
+  (let [all-calorie-lists (vec (get-resource-file-by-line file))]
+    (->> (summed-calories all-calorie-lists)
+         (sort)
+         (reverse)
+         (take 3)
+         (reduce +))))
 
