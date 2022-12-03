@@ -15,12 +15,11 @@
         (- ch-dec 38))))
 
 (defn sum-priorities [file]
-  (let [contents (vec (get-resource-file-by-line file))]
-    (->> contents
-         (map #(split-at (/ (count %) 2) %))
-         (map find-common-element)
-         (map get-priority)
-         (reduce +))))
+  (->> (get-resource-file-by-line file)
+       (map #(split-at (/ (count %) 2) %))
+       (map find-common-element)
+       (map get-priority)
+       (reduce +)))
 
 (defn- group-by-threes-reducer [items state]
   (if (<= (count items) 3)
@@ -31,9 +30,8 @@
   (group-by-threes-reducer items []))
 
 (defn sum-priorities-of-group-badges [file]
-  (let [contents (vec (get-resource-file-by-line file))]
-    (->> contents
-         (group-by-threes)
-         (map find-common-element)
-         (map get-priority)
-         (reduce +))))
+  (->> (get-resource-file-by-line file)
+       (group-by-threes)
+       (map find-common-element)
+       (map get-priority)
+       (reduce +)))
