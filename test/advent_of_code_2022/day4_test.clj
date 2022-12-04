@@ -10,4 +10,12 @@
 
 (deftest day4-full-test
   (testing "day4-full-test"
-    (is (= (count-fully-contained-ranges "day4-full-data.txt") 2))))
+    (is (= (count-fully-contained-ranges "day4-full-data.txt") 536))))
+
+(deftest day4-sample-test-part2
+  (testing "day4-sample-test-part2"
+    (is (= (count-overlapping-ranges "day4-example-data.txt") 4))))
+
+(deftest day4-full-test-part2
+  (testing "day4-full-test-part2"
+    (is (= (count-overlapping-ranges "day4-full-data.txt") 845))))
