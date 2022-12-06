@@ -11,3 +11,6 @@
 (defn char-to-int [c]
   (Character/digit ^Character c 10))
 
+(defn pad [n val coll]
+  (take n (concat coll (repeat val))))
+
