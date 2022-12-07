@@ -3,9 +3,9 @@
 (defn- duplicates? [coll]
   (= (count coll) (count (distinct coll))))
 
-(defn find-marker-position [signal]
+(defn find-marker-position [signal marker-length]
   (let [reducer (fn [position rest-of-signal]
-                  (if (duplicates? (take 4 rest-of-signal))
-                    (+ position 4)
+                  (if (duplicates? (take marker-length rest-of-signal))
+                    (+ position marker-length)
                     (recur (+ position 1) (rest rest-of-signal))))]
     (reducer 0 signal)))
