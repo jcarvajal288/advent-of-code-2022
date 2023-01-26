@@ -23,8 +23,6 @@
 (defn- cdt-reducer [tree current-dir commands]
   (let [cmd (first commands)
         tokens (if (= cmd nil) nil (str/split cmd #" "))]
-    (log/info tree)
-    (log/info (str "cmd: " cmd))
     (cond
       (empty? commands) tree
       (str/starts-with? cmd "$ cd") (cd tree current-dir tokens commands)
@@ -35,7 +33,6 @@
 (defn- cd [tree current-dir tokens commands]
   (let [dir-name (last tokens)
         current-node (get tree current-dir)]
-    (log/info "in cd")
     (if (= dir-name "..")
       (cdt-reducer tree (:parent current-node) (rest commands))
       (cdt-reducer tree (last tokens) (rest commands)))))
@@ -44,7 +41,6 @@
   (let [current-node (get tree current-dir)
         new-dir (->Directory (last tokens) current-dir [])
         ]
-    (log/info "in dir")
     (cdt-reducer
       (as-> (assoc tree (last tokens) new-dir) temp-tree
             (assoc temp-tree current-dir (->Directory (.name current-node)
@@ -55,12 +51,12 @@
 
 (defn- add-file [tree current-dir tokens commands]
   (let [current-node (get tree current-dir)
-        file-size (first tokens)
+        file-size (str-to-int (first tokens))
         file-name (last tokens)
-        new-file (->File file-name (:parent current-node) file-size)]
-    (log/info "in add-file")
+        new-file (->File file-name (:parent current-node) file-size)
+        tree-with-new-file (assoc tree file-name new-file)]
     (cdt-reducer
-      (assoc tree current-dir (->Directory (.name current-node)
+      (assoc tree-with-new-file current-dir (->Directory (.name current-node)
                                            (.parent current-node)
                                            (conj (.children current-node) new-file)))
       current-dir
@@ -69,11 +65,24 @@
 (defn construct-dir-tree [commands]
   (cdt-reducer {"/" (->Directory "/" nil [])} "/" commands))
 
+(defn dir-size-reducer [total-size node-name dir-tree]
+  (let [current-node (get dir-tree node-name)]
+    (if (instance? File current-node)
+      (+ total-size (.size current-node))
+      (map #(dir-size-reducer total-size (.name %) dir-tree) (.children current-node))
+      )))
+
 (defn dir-size [name dir-tree]
-  (let [reducer (fn [total directory dir-tree]
-                  (if ))]
-    (reducer 0 name dir-tree)))
+  (reduce + (flatten (dir-size-reducer 0 name dir-tree))))
 
 (defn total-dir-size [size-limit commands]
-  2)
+  (let [dir-tree (construct-dir-tree commands)]
+  (->> dir-tree
+       (vals)
+       (filter #(instance? Directory %))
+       (map #(.name %))
+       (map #(dir-size % dir-tree))
+       (filter #(<= % size-limit))
+       (reduce +)
+       )))
 

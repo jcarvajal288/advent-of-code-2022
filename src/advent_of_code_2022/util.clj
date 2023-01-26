@@ -16,3 +16,6 @@
 
 (defn is-number? [s]
   (every? #(Character/isDigit ^char %) s))
+
+(defn assoc-if-new [coll k v]
+  (merge {k v} coll))
