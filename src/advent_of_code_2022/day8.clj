@@ -3,10 +3,6 @@
             [clojure.math.combinatorics :as cm]
             [taoensso.timbre :as log]))
 
-;(defn visible-trees [file]
-;  (let [tree-rows (vec (get-resource-file-by-line file)]
-;    ))
-
 (defn read-forest [file]
   (let [rows (vec (get-resource-file-by-line file))]
     (vec (map #(vec (map char-to-int %)) rows))))
@@ -49,6 +45,22 @@
   (let [sight-lines (get-rows-for-tree forest x y)]
     (some true? (map is-tree-visible-in-row sight-lines))))
 
+(defn trees-seen [tree-row]
+  (let [tree (first tree-row)
+        reducer (fn [sum trees]
+                  (if (or (<= tree (first trees)) (= (count trees) 1))
+                    (+ sum 1)
+                    (recur (+ sum 1) (rest trees))))]
+    (if (= (count tree-row) 1)
+      0
+      (reducer 0 (rest tree-row)))))
+
+(defn tree-scenery-score [forest x y]
+  (let [sight-lines (get-rows-for-tree forest x y)]
+    (->> sight-lines
+         (map trees-seen)
+         (reduce *))))
+
 (defn visible-trees [file]
   (let [forest (read-forest file)
         x-axis (range 0 (count (get forest 0)))
@@ -58,4 +70,11 @@
          (filter true?)
          (count))))
 
+(defn highest-scenery-score [file]
+  (let [forest (read-forest file)
+        x-axis (range 0 (count (get forest 0)))
+        y-axis (range 0 (count forest))]
+    (->> (cm/cartesian-product x-axis y-axis)
+         (map #(tree-scenery-score forest (first %) (last %)))
+         (reduce max))))
 

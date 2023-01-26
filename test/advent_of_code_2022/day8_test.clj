@@ -12,6 +12,14 @@
   (testing "day8-full-test"
     (is (= (visible-trees "day8-full-data.txt") 1681))))
 
+(deftest day8-sample-test-part2
+  (testing "day8-sample-test-part2"
+    (is (= (highest-scenery-score "day8-example-data.txt") 8))))
+
+(deftest day8-full-test-part2
+  (testing "day8-full-test-part2"
+    (is (= (highest-scenery-score "day8-full-data.txt") 201684))))
+
 (def forest (read-forest "day8-example-data.txt"))
 
 (deftest test-is-tree-visible-in-row
@@ -23,7 +31,6 @@
 
 (deftest test-get-tree
   (testing "get-tree"
-    (log/info (vec forest))
     (is (= (get-tree forest 0 0) 3))
     (is (= (get-tree forest 1 0) 0))
     (is (= (get-tree forest 0 1) 2))
@@ -68,3 +75,11 @@
     (is (= (is-tree-visible forest 2 3) true))
     (is (= (is-tree-visible forest 1 3) nil))
     (is (= (is-tree-visible forest 3 3) nil))))
+
+(deftest test-trees-seen
+  (testing "trees-seen"
+    (is (= (trees-seen [5]) 0))
+    (is (= (trees-seen [5 3 5 3]) 2))
+    (is (= (trees-seen [5 3 3]) 2))
+    (is (= (trees-seen [5 3]) 1))
+    (is (= (trees-seen [5 4 9]) 2))))
