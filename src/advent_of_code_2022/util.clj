@@ -14,3 +14,5 @@
 (defn pad [n val coll]
   (take n (concat coll (repeat val))))
 
+(defn is-number? [s]
+  (every? #(Character/isDigit ^char %) s))

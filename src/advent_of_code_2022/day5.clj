@@ -18,8 +18,6 @@
                      (filter #(Character/isUpperCase ^char %) (rest next))))
                  {}))))
 
-(defn is-number? [s] (every? #(Character/isDigit ^char %) s))
-
 (defn parse-instructions [raw-data start-row]
   (as-> (subvec raw-data start-row) data
         (map #(str/split % #" ") data)
