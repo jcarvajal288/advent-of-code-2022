@@ -39,13 +39,18 @@
 
 (defn- dir [tree tokens current-dir commands]
   (let [current-node (get tree current-dir)
-        new-dir (->Directory (last tokens) current-dir [])
+        new-dir-name (last tokens)
+        new-dir (->Directory new-dir-name current-dir [])
         ]
+    (log/info "-------")
+    (log/info current-dir)
     (cdt-reducer
-      (as-> (assoc tree (last tokens) new-dir) temp-tree
-            (assoc temp-tree current-dir (->Directory (.name current-node)
-                                                      (.parent current-node)
-                                                      (conj (.children current-node) new-dir))))
+      (if (contains? tree  new-dir-name)
+        (as-> (assoc tree new-dir-name new-dir) temp-tree
+              (assoc temp-tree current-dir (->Directory (.name current-node)
+                                                        (.parent current-node)
+                                                        (conj (.children current-node) new-dir))))
+        tree)
       current-dir
       (rest commands))))
 
