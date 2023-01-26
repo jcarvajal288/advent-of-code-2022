@@ -1,5 +1,6 @@
 (ns advent-of-code-2022.day8
   (:require [advent-of-code-2022.util :refer :all]
+            [clojure.math.combinatorics :as cm]
             [taoensso.timbre :as log]))
 
 ;(defn visible-trees [file]
@@ -47,4 +48,14 @@
 (defn is-tree-visible [forest x y]
   (let [sight-lines (get-rows-for-tree forest x y)]
     (some true? (map is-tree-visible-in-row sight-lines))))
+
+(defn visible-trees [file]
+  (let [forest (read-forest file)
+        x-axis (range 0 (count (get forest 0)))
+        y-axis (range 0 (count forest))]
+    (->> (cm/cartesian-product x-axis y-axis)
+         (map #(is-tree-visible forest (first %) (last %)))
+         (filter true?)
+         (count))))
+
 

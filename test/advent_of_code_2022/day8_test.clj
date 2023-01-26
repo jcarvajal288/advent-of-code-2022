@@ -4,9 +4,13 @@
             [advent-of-code-2022.util :refer :all]
             [taoensso.timbre :as log]))
 
-;(deftest day8-sample-test
-;  (testing "day8-sample-test"
-;    (is (= (visible-trees "day8-example-data.txt") 21))))
+(deftest day8-sample-test
+  (testing "day8-sample-test"
+    (is (= (visible-trees "day8-example-data.txt") 21))))
+
+(deftest day8-full-test
+  (testing "day8-full-test"
+    (is (= (visible-trees "day8-full-data.txt") 1681))))
 
 (def forest (read-forest "day8-example-data.txt"))
 
