@@ -20,9 +20,26 @@
 (declare dir)
 (declare add-file)
 
+(defn add-file-to-tree [tree file]
+  (let [new-file-tree (assoc (get tree :files) (.name file) file)]
+    (assoc tree :files new-file-tree)))
+
+(defn get-file-from-tree [tree file-name]
+  (get (get tree :files) file-name))
+
+(defn get-node [tree node-name]
+  (let [current-node (get tree node-name)]
+    (if (nil? current-node)
+      (get-file-from-tree tree node-name)
+      current-node)))
+
 (defn- cdt-reducer [tree current-dir commands]
   (let [cmd (first commands)
         tokens (if (= cmd nil) nil (str/split cmd #" "))]
+    (log/info "-----")
+    (log/info tree)
+    (log/info cmd)
+    (log/info (str "current-dir: " current-dir))
     (cond
       (empty? commands) tree
       (str/starts-with? cmd "$ cd") (cd tree current-dir tokens commands)
@@ -40,17 +57,15 @@
 (defn- dir [tree tokens current-dir commands]
   (let [current-node (get tree current-dir)
         new-dir-name (last tokens)
-        new-dir (->Directory new-dir-name current-dir [])
-        ]
-    (log/info "-------")
-    (log/info current-dir)
+        new-dir (->Directory new-dir-name current-dir [])]
+    (log/info (str "current-node: " (.name current-node)))
     (cdt-reducer
       (if (contains? tree  new-dir-name)
+        tree
         (as-> (assoc tree new-dir-name new-dir) temp-tree
               (assoc temp-tree current-dir (->Directory (.name current-node)
                                                         (.parent current-node)
-                                                        (conj (.children current-node) new-dir))))
-        tree)
+                                                        (conj (.children current-node) new-dir)))))
       current-dir
       (rest commands))))
 
@@ -59,7 +74,10 @@
         file-size (str-to-int (first tokens))
         file-name (last tokens)
         new-file (->File file-name (:parent current-node) file-size)
-        tree-with-new-file (assoc tree file-name new-file)]
+        tree-with-new-file (add-file-to-tree tree new-file)]
+    (log/info tree)
+    (log/info tree-with-new-file)
+    ;(log/info current-node)
     (cdt-reducer
       (assoc tree-with-new-file current-dir (->Directory (.name current-node)
                                            (.parent current-node)
@@ -71,7 +89,7 @@
   (cdt-reducer {"/" (->Directory "/" nil [])} "/" commands))
 
 (defn dir-size-reducer [total-size node-name dir-tree]
-  (let [current-node (get dir-tree node-name)]
+  (let [current-node (get-node dir-tree node-name)]
     (if (instance? File current-node)
       (+ total-size (.size current-node))
       (map #(dir-size-reducer total-size (.name %) dir-tree) (.children current-node))
