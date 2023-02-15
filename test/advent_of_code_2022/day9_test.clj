@@ -8,7 +8,7 @@
 
 (deftest day8-full-test
   (testing "day8-full-test"
-    (is (= (get-unique-positions "day9-full-data.txt") 13))))
+    (is (= (get-unique-positions "day9-full-data.txt") 6067))))
 
 (deftest test-update-tail
   (testing "update-tail"
