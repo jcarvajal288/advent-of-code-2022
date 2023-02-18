@@ -12,3 +12,11 @@
 (deftest day7-full-test
   (testing "day7-full-test"
     (is (= (total-dir-size 100000 (get-resource-file-by-line "day7-full-data.txt")) 1367870))))
+
+(deftest day7-sample-test-part2
+  (testing "day7-sample-test-part2"
+    (is (= (dir-to-delete 70000000 30000000 (get-resource-file-by-line "day7-sample-data.txt")) 24933642))))
+
+(deftest day7-full-test-part2
+  (testing "day7-full-test-part2"
+    (is (= (dir-to-delete 70000000 30000000 (get-resource-file-by-line "day7-full-data.txt")) 549173))))

@@ -105,3 +105,17 @@
          (filter #(<= % size-limit))
          (reduce +))))
 
+(defn dir-to-delete [total-disk-space needed-space commands]
+  (let [dir-tree (construct-dir-tree commands)
+        dir-sizes (->> dir-tree
+                       (vals)
+                       (filter #(instance? Directory %))
+                       (map #(.name %))
+                       (map #(dir-size % dir-tree)))
+        total-used-space (last (sort dir-sizes))
+        total-free-space (- total-disk-space total-used-space)
+        space-to-free (- needed-space total-free-space)]
+    (->> dir-sizes
+         (filter #(>= % space-to-free))
+         (sort)
+         (first))))
