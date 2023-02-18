@@ -33,59 +33,64 @@
       (get-file-from-tree tree node-name)
       current-node)))
 
-(defn- cdt-reducer [tree current-dir commands]
+(defn- cdt-reducer [tree current-dirname commands]
   (let [cmd (first commands)
         tokens (if (= cmd nil) nil (str/split cmd #" "))]
     (cond
       (empty? commands) tree
-      (str/starts-with? cmd "$ cd") (cd tree current-dir tokens commands)
-      (= (first tokens) "dir") (dir tree tokens current-dir commands)
-      (is-number? (first tokens)) (add-file tree current-dir tokens commands)
-      :else (cdt-reducer tree current-dir (rest commands)))))
+      (str/starts-with? cmd "$ cd") (cd tree current-dirname tokens commands)
+      (= (first tokens) "dir") (dir tree current-dirname tokens commands)
+      (is-number? (first tokens)) (add-file tree current-dirname tokens commands)
+      :else (cdt-reducer tree current-dirname (rest commands)))))
 
 (defn construct-dir-tree [commands]
-  (cdt-reducer {"/" (->Directory "/" nil [])} "/" commands))
+  (cdt-reducer {"/" (->Directory "/" "" [])} "/" (rest commands)))
 
-(defn- cd [tree current-dir tokens commands]
+(defn- cd [tree current-dirname tokens commands]
   (let [dir-name (last tokens)
-        current-node (get tree current-dir)]
+        current-node (get tree current-dirname)]
     (if (= dir-name "..")
-      (cdt-reducer tree (:parent current-node) (rest commands))
-      (cdt-reducer tree (last tokens) (rest commands)))))
+      (cdt-reducer
+        tree
+        (.parent current-node)
+        (rest commands))
+      (cdt-reducer
+        tree
+        (format "%s/%s" current-dirname (last tokens))
+        (rest commands)))))
 
-(defn- dir [tree tokens current-dir commands]
-  (let [current-node (get tree current-dir)
-        new-dir-name (last tokens)
-        new-dir (->Directory new-dir-name current-dir [])]
+(defn- dir [tree current-dirname tokens commands]
+  (let [current-node (get tree current-dirname)
+        new-dir-name (format "%s/%s" current-dirname (last tokens))
+        new-dir (->Directory new-dir-name current-dirname [])]
     (cdt-reducer
-      (if (contains? tree  new-dir-name)
+      (if (contains? tree new-dir-name)
         tree
         (as-> (assoc tree new-dir-name new-dir) temp-tree
-              (assoc temp-tree current-dir (->Directory (.name current-node)
+              (assoc temp-tree current-dirname (->Directory (.name current-node)
                                                         (.parent current-node)
                                                         (conj (.children current-node) new-dir)))))
-      current-dir
+      current-dirname
       (rest commands))))
 
-(defn- add-file [tree current-dir tokens commands]
-  (let [current-node (get tree current-dir)
+(defn- add-file [tree current-dirname tokens commands]
+  (let [current-node (get tree current-dirname)
         file-size (str-to-int (first tokens))
-        file-name (last tokens)
-        new-file (->File file-name (:parent current-node) file-size)
+        file-name (format "%s/%s" current-dirname (last tokens))
+        new-file (->File file-name current-dirname file-size)
         tree-with-new-file (add-file-to-tree tree new-file)]
     (cdt-reducer
-      (assoc tree-with-new-file current-dir (->Directory (.name current-node)
+      (assoc tree-with-new-file current-dirname (->Directory (.name current-node)
                                            (.parent current-node)
                                            (conj (.children current-node) new-file)))
-      current-dir
+      current-dirname
       (rest commands))))
 
 (defn dir-size-reducer [total-size node-name dir-tree]
   (let [current-node (get-node dir-tree node-name)]
     (if (instance? File current-node)
       (+ total-size (.size current-node))
-      (map #(dir-size-reducer total-size (.name %) dir-tree) (.children current-node))
-      )))
+      (map #(dir-size-reducer total-size (.name %) dir-tree) (.children current-node)))))
 
 (defn dir-size [name dir-tree]
   (reduce + (flatten (dir-size-reducer 0 name dir-tree))))
@@ -98,6 +103,5 @@
          (map #(.name %))
          (map #(dir-size % dir-tree))
          (filter #(<= % size-limit))
-         (reduce +)
-         )))
+         (reduce +))))
 

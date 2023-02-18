@@ -8,4 +8,4 @@
                  [net.mikera/core.matrix "0.62.0"]
                  [org.clojure/math.combinatorics "0.1.6"]
                  ]
-:repl-options {:init-ns advent-of-code-2022.core})
+  :repl-options {:init-ns advent-of-code-2022.core})
