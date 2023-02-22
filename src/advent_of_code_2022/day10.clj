@@ -33,3 +33,8 @@
     (->> interesting-cycles
          (map #(* % (x-register-at-cycle state-list %)))
          (reduce +))))
+
+(defn draw-screen [filename]
+  (let [state-list (run-program (get-resource-file-by-line filename))
+        pixel-rows (render-screen state-list)]
+    (doseq [row pixel-rows] (println row))))
