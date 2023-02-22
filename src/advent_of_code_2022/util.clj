@@ -6,7 +6,10 @@
   (str/split-lines (slurp (.getPath (clojure.java.io/resource file)))))
 
 (defn str-to-int [s]
-  (Integer/parseInt (re-find #"\d+" s)))
+  (let [value (Integer/parseInt (re-find #"\d+" s))]
+    (if (str/starts-with? s "-")
+      (- value)
+      value)))
 
 (defn char-to-int [c]
   (Character/digit ^Character c 10))
