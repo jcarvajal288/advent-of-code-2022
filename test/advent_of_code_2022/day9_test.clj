@@ -4,11 +4,11 @@
 
 (deftest day8-sample-test
   (testing "day8-sample-test"
-    (is (= (get-unique-positions "day9-example-data.txt") 13))))
+    (is (= (get-unique-positions-N-knots "day9-example-data.txt" 2) 13))))
 
 (deftest day8-full-test
   (testing "day8-full-test"
-    (is (= (get-unique-positions "day9-full-data.txt") 6067))))
+    (is (= (get-unique-positions-N-knots "day9-full-data.txt" 2) 6067))))
 
 (deftest day8-sample-test-part2
   (testing "day8-sample-test-part2"

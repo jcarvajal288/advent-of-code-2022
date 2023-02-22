@@ -24,8 +24,7 @@
       (or (>= (abs x-diff) 2) (>= (abs y-diff) 2)) (list
                                                      (clamp (first tail) x-diff 1)
                                                      (clamp (last tail) y-diff 1))
-      :else tail
-      )))
+      :else tail)))
 
 (defn move-head [head instruction]
   (cond
@@ -42,16 +41,6 @@
   (->> instructions
        (map #(expand-instruction %))
        (reduce concat)))
-
-(defn get-positions [origin instructions]
-  (last (reduce (fn [head-and-tail-list next-instruction]
-                  (let [head (first head-and-tail-list)
-                        tail-list (last head-and-tail-list)
-                        tail (last tail-list)
-                        new-head (move-head head next-instruction)]
-                    [new-head (conj tail-list (update-knot new-head tail))]))
-                [origin [origin]]
-                instructions)))
 
 (defn update-rope [new-head rest-rope]
   (reduce (fn [new-rope next-knot]
@@ -76,12 +65,6 @@
        (map #(str/split % #" "))
        (map #(list (first %) (str-to-int (last %))))
        (expand-instructions)))
-
-(defn get-unique-positions [filename]
-  (->> (prepare-instructions filename)
-       (get-positions [0 0])
-       (distinct)
-       (count)))
 
 (defn get-unique-positions-N-knots [filename rope-length]
   (->> (prepare-instructions filename)
