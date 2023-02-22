@@ -10,7 +10,7 @@
     (<= diff (- dist)) (- n 1)
     :else n))
 
-(defn update-tail [head tail]
+(defn update-knot [head tail]
   (let [x-diff (- (first head) (first tail))
         y-diff (- (last head) (last tail))]
     (cond
@@ -49,15 +49,42 @@
                         tail-list (last head-and-tail-list)
                         tail (last tail-list)
                         new-head (move-head head next-instruction)]
-                    [new-head (conj tail-list (update-tail new-head tail))]))
+                    [new-head (conj tail-list (update-knot new-head tail))]))
                 [origin [origin]]
                 instructions)))
 
-(defn get-unique-positions [filename]
+(defn update-rope [new-head rest-rope]
+  (reduce (fn [new-rope next-knot]
+            (conj new-rope (update-knot (last new-rope) next-knot)))
+          [new-head]
+          rest-rope))
+
+(defn get-positions-N-knots [origin rope-length instructions]
+  (let [rope (for [_ (range rope-length)] origin)]
+    (last (reduce (fn [rope-and-tail-list next-instruction]
+                    (let [rope (first rope-and-tail-list)
+                          head (first rope)
+                          tail-list (last rope-and-tail-list)
+                          new-head (move-head head next-instruction)
+                          new-rope (update-rope new-head (rest rope))]
+                      [new-rope (conj tail-list (last new-rope))]))
+                  [rope [origin]]
+                  instructions))))
+
+(defn prepare-instructions [filename]
   (->> (get-resource-file-by-line filename)
        (map #(str/split % #" "))
        (map #(list (first %) (str-to-int (last %))))
-       (expand-instructions)
+       (expand-instructions)))
+
+(defn get-unique-positions [filename]
+  (->> (prepare-instructions filename)
        (get-positions [0 0])
+       (distinct)
+       (count)))
+
+(defn get-unique-positions-N-knots [filename rope-length]
+  (->> (prepare-instructions filename)
+       (get-positions-N-knots [0 0] rope-length)
        (distinct)
        (count)))
