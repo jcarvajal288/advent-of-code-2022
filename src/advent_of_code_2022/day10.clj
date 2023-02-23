@@ -34,6 +34,21 @@
          (map #(* % (x-register-at-cycle state-list %)))
          (reduce +))))
 
+(defn draw-pixel [indexed-state]
+  (let [index (first indexed-state)
+        state (last indexed-state)]
+    (if (<= (abs (- index (.x-reg state))) 1)
+      \#
+      \.)))
+
+(defn render-screen [state-list]
+  (let [states-by-rows (partition 40 state-list)
+        draw-pixel-row (fn [state-row]
+                         (->> state-row
+                              (map-indexed vector)
+                              (map draw-pixel)))]
+    (map draw-pixel-row states-by-rows)))
+
 (defn draw-screen [filename]
   (let [state-list (run-program (get-resource-file-by-line filename))
         pixel-rows (render-screen state-list)]
