@@ -27,7 +27,7 @@
         (-> item
             ((.operation current-monkey))
             (/ 3)
-            (int)
+            (biginteger)
             ((.-throw_item current-monkey) monkeys)))
       monkeys
       (.items current-monkey)))
