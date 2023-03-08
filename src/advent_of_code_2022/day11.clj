@@ -18,15 +18,15 @@
 
 
 (defn give-monkey-item [item monkeys catcher]
-  (log/info (format "    Item with worry level %d is thrown to monkey %d" item catcher))
+  ;(log/info (format "    Item with worry level %d is thrown to monkey %d" item catcher))
   (update-in monkeys [catcher :items] #(conj % item)))
 
 (defn throw-items [monkeys current-monkey]
   (reduce (fn [monkeys item]
-        (log/info (format "  Monkey inspects an item with worry level of %d" item))
+        ;(log/info (format "  Monkey inspects an item with worry level of %d" item))
         (-> item
             ((.operation current-monkey))
-            (/ 3)
+            ;(/ 3)
             (biginteger)
             ((.-throw_item current-monkey) monkeys)))
       monkeys
@@ -43,7 +43,7 @@
     (assoc monkeys current-monkey-index itemless-monkey)))
 
 (defn play-turn [monkeys current-monkey-index]
-  (log/info (format "Monkey %d:" current-monkey-index))
+  ;(log/info (format "Monkey %d:" current-monkey-index))
   (let [current-monkey (get monkeys current-monkey-index)]
     (-> monkeys
         (throw-items current-monkey)
@@ -58,7 +58,8 @@
           (range (count monkeys))))
 
 (defn play-rounds [monkeys num-rounds]
-  (reduce (fn [rounds _round-number]
+  (reduce (fn [rounds round-number]
+            (log/info round-number)
             (let [latest-monkeys (last rounds)]
               (conj rounds (play-round latest-monkeys))))
           [monkeys]

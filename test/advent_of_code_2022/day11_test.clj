@@ -63,3 +63,7 @@
 (deftest day11-full-test
   (testing "day11-full-test"
     (is (= (calculate-monkey-business actual-monkeys 20) 10605))))
+
+(deftest day11-full-test-part2
+  (testing "day11-full-test-part2"
+    (is (= (calculate-monkey-business actual-monkeys 10000) 10605))))
