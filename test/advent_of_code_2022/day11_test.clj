@@ -20,6 +20,7 @@
      (fn [old] (+ old 3))
      17 0 1)])
 
+
 (deftest day11-example-test
   (testing "day11-example-test"
     (is (= (calculate-monkey-business example-monkeys 20) 10605))))
