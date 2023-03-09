@@ -7,5 +7,6 @@
                  [com.taoensso/timbre "5.2.1"]
                  [net.mikera/core.matrix "0.62.0"]
                  [org.clojure/math.combinatorics "0.1.6"]
+                 [org.clojure/math.numeric-tower "0.0.5"]
                  ]
   :repl-options {:init-ns advent-of-code-2022.core})

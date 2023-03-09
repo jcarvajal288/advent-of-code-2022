@@ -1,7 +1,5 @@
 (ns advent-of-code-2022.day11
-  (:require [advent-of-code-2022.util :refer :all]
-            [clojure.string :as str]
-            [taoensso.timbre :as log]))
+  (:require [taoensso.timbre :as log]))
 
 (declare give-monkey-item)
 (defrecord Monkey [items operation throw-item num-inspections])
@@ -16,19 +14,16 @@
         (give-monkey-item item monkeys monkey-false)))
     0))
 
-
 (defn give-monkey-item [item monkeys catcher]
-  ;(log/info (format "    Item with worry level %d is thrown to monkey %d" item catcher))
   (update-in monkeys [catcher :items] #(conj % item)))
 
 (defn throw-items [monkeys current-monkey]
   (reduce (fn [monkeys item]
-        ;(log/info (format "  Monkey inspects an item with worry level of %d" item))
-        (-> item
-            ((.operation current-monkey))
-            ;(/ 3)
-            (biginteger)
-            ((.-throw_item current-monkey) monkeys)))
+            (-> item
+                (biginteger)
+                ((.operation current-monkey))
+                ;(/ 3)
+                ((.-throw_item current-monkey) monkeys)))
       monkeys
       (.items current-monkey)))
 
@@ -43,7 +38,6 @@
     (assoc monkeys current-monkey-index itemless-monkey)))
 
 (defn play-turn [monkeys current-monkey-index]
-  ;(log/info (format "Monkey %d:" current-monkey-index))
   (let [current-monkey (get monkeys current-monkey-index)]
     (-> monkeys
         (throw-items current-monkey)

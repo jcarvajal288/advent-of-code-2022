@@ -1,6 +1,7 @@
 (ns advent-of-code-2022.day11-test
   (:require [clojure.test :refer :all]
-            [advent-of-code-2022.day11 :refer :all]))
+            [advent-of-code-2022.day11 :refer :all]
+            [clojure.math.numeric-tower :as nt]))
 
 (def example-monkeys
   [(create-monkey
@@ -13,7 +14,7 @@
      19 2 0)
    (create-monkey
      [79 60 97]
-     (fn [old] (* old old))
+     (fn [old] (nt/expt old 2))
      13 1 3)
    (create-monkey
      [74]
@@ -47,7 +48,7 @@
      7 1 0)
    (create-monkey
      [87 57 63 86 87 53]
-     (fn [old] (* old old))
+     (fn [old] (.pow old 2)) ; this is slow for big numbers
      11 5 0)
    (create-monkey
      [73 59 82 65]
