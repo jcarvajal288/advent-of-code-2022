@@ -14,7 +14,7 @@
      19 2 0)
    (create-monkey
      [79 60 97]
-     (fn [old] (nt/expt old 2))
+     (fn [old] (* old old))
      13 1 3)
    (create-monkey
      [74]
@@ -48,7 +48,7 @@
      7 1 0)
    (create-monkey
      [87 57 63 86 87 53]
-     (fn [old] (.pow old 2)) ; this is slow for big numbers
+     (fn [old] (* old 21))
      11 5 0)
    (create-monkey
      [73 59 82 65]
@@ -56,14 +56,17 @@
      2 4 3)
    ])
 
-
 (deftest day11-example-test
   (testing "day11-example-test"
     (is (= (calculate-monkey-business example-monkeys 20) 10605))))
 
 (deftest day11-full-test
   (testing "day11-full-test"
-    (is (= (calculate-monkey-business actual-monkeys 20) 10605))))
+    (is (= (calculate-monkey-business actual-monkeys 20) 112221))))
+
+(deftest day11-example-test-part2
+  (testing "day11-example-test-part2"
+    (is (= (calculate-monkey-business example-monkeys 10000) 2713310158))))
 
 (deftest day11-full-test-part2
   (testing "day11-full-test-part2"

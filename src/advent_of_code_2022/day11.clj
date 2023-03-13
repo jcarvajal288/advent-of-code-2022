@@ -2,12 +2,13 @@
   (:require [taoensso.timbre :as log]))
 
 (declare give-monkey-item)
-(defrecord Monkey [items operation throw-item num-inspections])
+(defrecord Monkey [items operation divisor throw-item num-inspections])
 
 (defn create-monkey [items operation divisor monkey-true monkey-false]
   (->Monkey
     items
     operation
+    divisor
     (fn [item monkeys]
       (if (= (mod item divisor) 0)
         (give-monkey-item item monkeys monkey-true)
@@ -15,14 +16,13 @@
     0))
 
 (defn give-monkey-item [item monkeys catcher]
-  (update-in monkeys [catcher :items] #(conj % item)))
+  (let [mod-cap (reduce * (map #(.-divisor %) monkeys))]
+    (update-in monkeys [catcher :items] #(conj % (mod item mod-cap)))))
 
 (defn throw-items [monkeys current-monkey]
   (reduce (fn [monkeys item]
             (-> item
-                (biginteger)
                 ((.operation current-monkey))
-                ;(/ 3)
                 ((.-throw_item current-monkey) monkeys)))
       monkeys
       (.items current-monkey)))
@@ -53,7 +53,7 @@
 
 (defn play-rounds [monkeys num-rounds]
   (reduce (fn [rounds round-number]
-            (log/info round-number)
+            ;(log/info round-number)
             (let [latest-monkeys (last rounds)]
               (conj rounds (play-round latest-monkeys))))
           [monkeys]
@@ -66,4 +66,5 @@
          (sort)
          (reverse)
          (take 2)
-         (reduce *))))
+         (reduce *)
+         )))
