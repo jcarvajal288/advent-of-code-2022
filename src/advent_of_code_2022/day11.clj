@@ -19,10 +19,13 @@
   (let [mod-cap (reduce * (map #(.-divisor %) monkeys))]
     (update-in monkeys [catcher :items] #(conj % (mod item mod-cap)))))
 
-(defn throw-items [monkeys current-monkey]
+(defn throw-items [monkeys current-monkey worry-divisor]
   (reduce (fn [monkeys item]
             (-> item
                 ((.operation current-monkey))
+                ;(/ worry-divisor)
+                ;(biginteger)
+                ;(Math/round)
                 ((.-throw_item current-monkey) monkeys)))
       monkeys
       (.items current-monkey)))
@@ -37,30 +40,30 @@
         itemless-monkey (assoc current-monkey :items [])]
     (assoc monkeys current-monkey-index itemless-monkey)))
 
-(defn play-turn [monkeys current-monkey-index]
+(defn play-turn [monkeys current-monkey-index worry-divisor]
   (let [current-monkey (get monkeys current-monkey-index)]
     (-> monkeys
-        (throw-items current-monkey)
+        (throw-items current-monkey worry-divisor)
         (adjust-current-monkeys-inspections current-monkey-index)
         (clear-current-monkeys-items current-monkey-index))
     ))
 
-(defn play-round [monkeys]
+(defn play-round [monkeys worry-divisor]
   (reduce (fn [monkeys monkey-index]
-            (play-turn monkeys monkey-index))
+            (play-turn monkeys monkey-index worry-divisor))
           monkeys
           (range (count monkeys))))
 
-(defn play-rounds [monkeys num-rounds]
+(defn play-rounds [monkeys num-rounds worry-divisor]
   (reduce (fn [rounds round-number]
             ;(log/info round-number)
             (let [latest-monkeys (last rounds)]
-              (conj rounds (play-round latest-monkeys))))
+              (conj rounds (play-round latest-monkeys worry-divisor))))
           [monkeys]
           (range num-rounds)))
 
-(defn calculate-monkey-business [monkeys num-rounds]
-  (let [rounds (play-rounds monkeys num-rounds)]
+(defn calculate-monkey-business [monkeys num-rounds worry-divisor]
+  (let [rounds (play-rounds monkeys num-rounds, worry-divisor)]
     (->> (last rounds)
          (map #(.-num_inspections %))
          (sort)
