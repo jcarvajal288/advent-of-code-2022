@@ -23,9 +23,8 @@
   (reduce (fn [monkeys item]
             (-> item
                 ((.operation current-monkey))
-                ;(/ worry-divisor)
-                ;(biginteger)
-                ;(Math/round)
+                (/ worry-divisor)
+                (biginteger)
                 ((.-throw_item current-monkey) monkeys)))
       monkeys
       (.items current-monkey)))
