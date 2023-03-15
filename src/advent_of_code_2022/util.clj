@@ -22,3 +22,5 @@
 
 (defn assoc-if-new [coll k v]
   (merge {k v} coll))
+
+(defn not-neg? [n] (not (neg? n)))
