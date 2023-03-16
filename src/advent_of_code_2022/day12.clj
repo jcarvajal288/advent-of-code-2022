@@ -67,3 +67,24 @@
         shortest-path (alg/shortest-path terrain-graph {:start-node (name-node start)
                                                         :end-node (name-node end)})]
     (- (count (alg/nodes-in-path shortest-path)) 1)))
+
+(defn find-all-locations-with-elevation [input-lines char]
+  (let [width (count (first input-lines))
+        height (count input-lines)]
+    (->> (cm/cartesian-product (range 0 width) (range 0 height))
+         (filter #(= (get-cell input-lines %) char)))))
+
+(defn shortest-of-any-path [filename]
+  (let [input-lines (get-resource-file-by-line filename)
+        end (find-node-with-value input-lines \E)
+        terrain-graph (build-terrain-graph input-lines)
+        all-a-locations (find-all-locations-with-elevation input-lines \a)]
+    (->> all-a-locations
+         (map #(alg/shortest-path terrain-graph {:start-node (name-node %)
+                                                 :end-node (name-node end)}))
+         (map #(alg/nodes-in-path %))
+         (filter #(not (nil? %)))
+         (map count)
+         (sort)
+         (first)
+         (dec))))

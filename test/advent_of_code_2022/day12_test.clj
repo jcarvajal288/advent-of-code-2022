@@ -9,3 +9,11 @@
 (deftest day12-full-test
   (testing "day12-full-test"
     (is (= (shortest-path-to-signal "day12-full-data.txt") 490))))
+
+(deftest day12-sample-test-part2
+  (testing "day12-sample-test-part2"
+    (is (= (shortest-of-any-path "day12-example-data.txt") 29))))
+
+(deftest day12-full-test-part2
+  (testing "day12-full-test-part2"
+    (is (= (shortest-of-any-path "day12-full-data.txt") 488))))
