@@ -41,10 +41,8 @@
     (->> neighbors
          (map name-node)
          (reduce (fn [current-graph neighbor]
-                   (uber/build-graph current-graph [node-name neighbor]))
-                   graph))
-    ))
-; https://github.com/Engelberg/ubergraph
+                   (uber/add-directed-edges current-graph [node-name neighbor]))
+                   graph))))
 
 (defn build-terrain-graph [input-lines]
   (let [width (count (first input-lines))
@@ -68,4 +66,4 @@
         terrain-graph (build-terrain-graph input-lines)
         shortest-path (alg/shortest-path terrain-graph {:start-node (name-node start)
                                                         :end-node (name-node end)})]
-    (alg/nodes-in-path shortest-path)))
+    (- (count (alg/nodes-in-path shortest-path)) 1)))
