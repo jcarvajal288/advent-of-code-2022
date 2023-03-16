@@ -2,64 +2,70 @@
   (:require [advent-of-code-2022.util :refer :all]
             [clojure.math.combinatorics :as cm]
             [ubergraph.core :as uber]
+            [ubergraph.alg :as alg]
             [taoensso.timbre :as log]
             ))
 
-(def ^:dynamic start [0 0])
-(def ^:dynamic end [0 0])
-
-(defn get-cell [lines coord]
-  (get (get lines (last coord)) (first coord)))
+(defn get-cell [input-lines coord]
+  (get (get input-lines (last coord)) (first coord)))
 
 (defn translate-elevation [char]
   (cond
     (= char \S) (int \a)
-    (= char \E) :end
+    (= char \E) (int \z)
     :else (int char)))
 
-(defn accessible-neighbor? [lines elevation neighbor]
-  (let [neighbor-elevation (translate-elevation (get-cell lines neighbor))]
-    (cond
-      (= elevation :end) false
-      (= neighbor-elevation :end) true
-      :else (<= (- neighbor-elevation elevation) 1))))
+(defn accessible-neighbor? [input-lines elevation neighbor]
+  (let [neighbor-elevation (translate-elevation (get-cell input-lines neighbor))]
+      (<= (- neighbor-elevation elevation) 1)))
 
-(defn in-bounds? [lines coord]
-  (not (nil? (get-cell lines coord))))
+(defn in-bounds? [input-lines coord]
+  (not (nil? (get-cell input-lines coord))))
 
 (defn find-accessible-neighbors [lines neighbor-coords elevation]
   (->> neighbor-coords
        (filter #(in-bounds? lines %))
-       (filter #(accessible-neighbor? lines elevation %))
-       ))
+       (filter #(accessible-neighbor? lines elevation %))))
 
 (defn name-node [coord]
   (str (first coord) "-" (last coord)))
 
-(defn create-graph-node [lines graph coord]
+(defn create-graph-node [input-lines graph coord]
   (let [x (first coord)
         y (last coord)
-        char (get-cell lines coord)
+        char (get-cell input-lines coord)
         elevation (translate-elevation char)
         neighbor-coords [[(+ x 1) y] [x (+ y 1)] [(- x 1) y] [x (- y 1)]]
-        neighbors (find-accessible-neighbors lines neighbor-coords elevation)
-        node-name (name-node coord)
-        ]
-    (do (if (= char \S) (binding [start coord]))
-        (if (= char \E) (binding [end coord]))
-        (->> neighbors
-             ;(map (fn [x] [(name-node coord) (name-node x)]))
-             (map name-node)
-             (reduce (partial uber/build-graph graph [node-name %]) graph))
-    )))
+        neighbors (find-accessible-neighbors input-lines neighbor-coords elevation)
+        node-name (name-node coord)]
+    (->> neighbors
+         (map name-node)
+         (reduce (fn [current-graph neighbor]
+                   (uber/build-graph current-graph [node-name neighbor]))
+                   graph))
+    ))
 ; https://github.com/Engelberg/ubergraph
 
-(defn read-map-from-file [filename]
-  (let [lines (get-resource-file-by-line filename)
-        width (count (first lines))
-        height (count lines)
-        graph (uber/graph [])]
+(defn build-terrain-graph [input-lines]
+  (let [width (count (first input-lines))
+        height (count input-lines)]
     (->> (cm/cartesian-product (range 0 width) (range 0 height))
-         (reduce (partial create-graph-node lines) graph)
-         (uber/pprint)
-         )))
+         (reduce (fn [graph next-coord]
+                   (create-graph-node input-lines graph next-coord))
+                 (uber/graph)))))
+
+(defn find-node-with-value [input-lines char]
+  (let [width (count (first input-lines))
+        height (count input-lines)]
+    (->> (cm/cartesian-product (range 0 width) (range 0 height))
+         (filter #(= (get-cell input-lines %) char))
+         (first))))
+
+(defn shortest-path-to-signal [filename]
+  (let [input-lines (get-resource-file-by-line filename)
+        start (find-node-with-value input-lines \S)
+        end (find-node-with-value input-lines \E)
+        terrain-graph (build-terrain-graph input-lines)
+        shortest-path (alg/shortest-path terrain-graph {:start-node (name-node start)
+                                                        :end-node (name-node end)})]
+    (alg/nodes-in-path shortest-path)))
