@@ -66,7 +66,7 @@
         terrain-graph (build-terrain-graph input-lines)
         shortest-path (alg/shortest-path terrain-graph {:start-node (name-node start)
                                                         :end-node (name-node end)})]
-    (- (count (alg/nodes-in-path shortest-path)) 1)))
+    (dec (count (alg/nodes-in-path shortest-path)))))
 
 (defn find-all-locations-with-elevation [input-lines char]
   (let [width (count (first input-lines))
