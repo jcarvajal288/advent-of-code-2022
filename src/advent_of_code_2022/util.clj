@@ -24,3 +24,5 @@
   (merge {k v} coll))
 
 (defn not-neg? [n] (not (neg? n)))
+
+(defn zip [v1 v2] (map vector v1 v2))
