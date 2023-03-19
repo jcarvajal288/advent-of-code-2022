@@ -8,9 +8,10 @@
   (<= (first pair) (last pair)))
 
 (defn unbox [value]
-  (if (integer? value)
-    value
-    (unbox (first value))))
+  (log/info (str "  Unboxing " value))
+    (if (and (list? value) (= (count value) 1))
+      (unbox (first value))
+      value))
 
 (defn compare-lists [lists]
   (let [left (first lists)
