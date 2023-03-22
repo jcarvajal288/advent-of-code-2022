@@ -1,17 +1,23 @@
 (ns advent-of-code-2022.day13
   (:require [advent-of-code-2022.util :refer :all]
-            [taoensso.timbre :as log]
-            ))
+            [taoensso.timbre :as log]))
 
 (defn compare-integers [pair]
-  (format "  Comparing %d vs %d" (first pair) (last pair))
-  (<= (first pair) (last pair)))
+  (cond
+    (< (first pair) (last pair)) :in-order
+    (> (first pair) (last pair)) :out-of-order
+    :else :equal))
 
 (defn unbox [value]
-  (log/info (str "  Unboxing " value))
-    (if (and (list? value) (= (count value) 1))
-      (unbox (first value))
-      value))
+  (if (and (list? value) (= (count value) 1))
+    (unbox (first value))
+    value))
+
+(defn compare-lengths [list-left list-right]
+  (cond
+    (< (count list-left) (count list-right)) :in-order
+    (> (count list-left) (count list-right)) :out-of-order
+    :else :equal))
 
 (defn compare-lists [lists]
   (let [left (first lists)
@@ -20,25 +26,21 @@
         list-right (if (integer? right) [right] right)
         zipped (zip list-left list-right)
         first-unequal-pair (first (filter #(not (= (unbox (first %)) (unbox (last %)))) zipped))]
-    (log/info (format "  Comparing %s vs %s" list-left list-right))
-    (log/info (str "first unequal pair: " first-unequal-pair))
     (cond
-      ;(and (= (first list-left) list-right) (> (count list-left) (count list-right))) false
-      ;(and (= [(first list-left)] (first list-right)) (> (count list-left) 1) (= (count list-right) 1)) false
-      ;(and (= [(first list-left)] (first list-right)) (> (count list-left) (count list-right))) false
-      (empty? first-unequal-pair) (<= (count list-left) (count list-right))
+      (empty? first-unequal-pair) (compare-lengths list-left list-right)
       (every? integer? first-unequal-pair) (compare-integers first-unequal-pair)
-      :else (recur first-unequal-pair))))
+      :else (let [result (compare-lists first-unequal-pair)]
+              (if (and result (= result :equal))
+                (compare-lengths list-left list-right)
+                result)))))
 
 (defn packet-in-right-order? [packet-strings]
   (let [packet1 (load-string (first packet-strings))
         packet2 (load-string (last packet-strings))
         result (compare-lists [packet1 packet2])]
-    (log/info (str "    Result: " result))
-    result))
+    (or (= result :in-order) (= result :equal))))
 
 (defn compare-packets [packet1 packet2]
-  (log/info (format "Comparing packets %s vs %s" packet1 packet2))
   (packet-in-right-order? [packet1 packet2]))
 
 (defn get-packet-pairs [filename]
