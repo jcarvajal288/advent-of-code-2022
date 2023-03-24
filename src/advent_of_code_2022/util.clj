@@ -25,4 +25,6 @@
 
 (defn not-neg? [n] (not (neg? n)))
 
+(defn not-nil? [n] (not (nil? n)))
+
 (defn zip [v1 v2] (map vector v1 v2))

@@ -14,7 +14,9 @@
     (assoc grid y new-row)))
 
 (defn get-2d-coord [grid coord]
-  (nth (nth grid (last coord)) (first coord)))
+  (try
+    (nth (nth grid (last coord)) (first coord))
+    (catch Exception _ \#)))
 
 (defn parse-rock-paths [filename]
   (->> (get-resource-file-by-line filename)
@@ -73,12 +75,18 @@
 
 (defn build-map [filename]
   (let [rock-paths (parse-rock-paths filename)
-        width (find-dimension rock-paths :width)
+        width (* (find-dimension rock-paths :width) 2)
         height (find-dimension rock-paths :height)]
     (->> (initialize-2d-vector (inc width) (inc height) \.)
          (apply-rock-paths rock-paths))))
 
-(defn drop-sand [rock-map sand-coord]
+(defn add-floor [rock-map]
+  (let [width (count (first rock-map))]
+    (-> rock-map
+        (conj (vec (repeat width \.)))
+        (conj (vec (repeat width \#))))))
+
+(defn drop-sand [rock-map sand-coord end-function]
   (let [x (first sand-coord)
         y (last sand-coord)
         down-left [(dec x) (inc y)]
@@ -86,17 +94,28 @@
         down-right [(inc x) (inc y)]
         is-air? #(= % \.)]
     (cond
-      (>= (inc y) (count rock-map)) :void-reached
-      (is-air? (get-2d-coord rock-map down)) (drop-sand rock-map down)
-      (is-air? (get-2d-coord rock-map down-left)) (drop-sand rock-map down-left)
-      (is-air? (get-2d-coord rock-map down-right)) (drop-sand rock-map down-right)
+      (end-function rock-map sand-coord) :finished
+      (is-air? (get-2d-coord rock-map down)) (drop-sand rock-map down end-function)
+      (is-air? (get-2d-coord rock-map down-left)) (drop-sand rock-map down-left end-function)
+      (is-air? (get-2d-coord rock-map down-right)) (drop-sand rock-map down-right end-function)
       :else (set-2d-coord rock-map sand-coord \o))))
 
-(defn run-simulation [sand-outlet filename]
-  (let [rock-map (build-map filename)]
-    (reduce (fn [rock-map num-sand]
-              (if (= rock-map :void-reached)
-                (reduced (dec num-sand))
-                (drop-sand rock-map sand-outlet)))
-            rock-map
-            (range))))
+(defn run-simulation [rock-map sand-outlet end-function]
+  (reduce (fn [rock-map num-sand]
+            (if (= rock-map :finished)
+              (reduced (dec num-sand))
+              (drop-sand rock-map sand-outlet end-function)))
+          rock-map
+          (range)))
+
+(defn run-simulation-part1 [sand-outlet filename]
+  (let [rock-map (build-map filename)
+        end-function (fn [rock-map sand-coord]
+                       (>= (inc (last sand-coord)) (count rock-map)))]
+    (run-simulation rock-map sand-outlet end-function)))
+
+(defn run-simulation-part2 [sand-outlet filename]
+  (let [rock-map (add-floor (build-map filename))
+        end-function (fn [rock-map _sand-coord]
+                       (= (get-2d-coord rock-map sand-outlet) \o))]
+    (run-simulation rock-map sand-outlet end-function)))
