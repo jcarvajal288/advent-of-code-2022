@@ -28,3 +28,6 @@
 (defn not-nil? [n] (not (nil? n)))
 
 (defn zip [v1 v2] (map vector v1 v2))
+
+(defn coll-contains? [n coll]
+  (not-nil? (some #{n} coll)))
