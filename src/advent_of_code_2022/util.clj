@@ -31,3 +31,9 @@
 
 (defn coll-contains? [n coll]
   (not-nil? (some #{n} coll)))
+
+(defn all-pairs [lst]
+  (let [n (count lst)]
+    (for [i (range n)
+          j (range (inc i) n)]
+      [(nth lst i) (nth lst j)])))

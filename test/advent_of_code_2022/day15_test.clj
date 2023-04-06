@@ -9,3 +9,8 @@
 (deftest day15-full-test
   (testing "day15-full-test"
     (is (= (count-beaconless-positions-in-row 2000000 "day15-full-data.txt") 4724228))))
+
+(deftest day15-example-test-part2
+  (testing "day15-example-test-part2"
+    (is (= (find-beacon-location 20 "day15-example-data.txt") 56000011))))
+
