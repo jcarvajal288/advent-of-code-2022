@@ -74,20 +74,28 @@
             (+ (* m1 x) b1))]
     [x y]))
 
-(defn find-sensor-boundary-intersection-points [bound filename]
-  (->> filename
-       parse-sensor-map
-       calculate-sensor-radii
-       (map #(calculate-sensor-lines (first %) (last %)))
-       (apply concat)
-       all-pairs
-       (map #(find-intersection (first %) (last %)))
-       (filter (fn [i] (every? #(= (type %) Long) i)))
-       (filter (fn [i] (every? #(and (>= % 0) (<= % bound)) i)))))
+(defn is-free? [pt sensor-radii]
+  (let [in-radius? (fn [pt sensor-radius]
+                     (let [sensor (first sensor-radius)
+                           radius (last sensor-radius)]
+                       (<= (manhattan-distance pt sensor) radius)))]
+    (empty? (filter #(in-radius? pt %) sensor-radii))))
 
-(defn is-target? [[x y] intersections]
-  (some #(= [x (+ y 2)] %) intersections))
+(defn find-unseen-beacon [bound filename]
+  (let [sensor-radii (->> filename
+                          parse-sensor-map
+                          calculate-sensor-radii)]
+    (->> sensor-radii
+         (map #(calculate-sensor-lines (first %) (last %)))
+         (apply concat)
+         all-pairs
+         (map #(find-intersection (first %) (last %)))
+         (filter (fn [i] (every? #(= (type %) Long) i)))
+         (filter (fn [i] (every? #(and (>= % 0) (<= % bound)) i)))
+         (map (fn [[x y]] [x (inc y)]))
+         (filter #(is-free? % sensor-radii))
+         first)))
 
-(defn find-beacon-location [bound filename]
-  (let [intersections (find-sensor-boundary-intersection-points bound filename)]
-    (filter #(is-target? % intersections) intersections)))
+(defn unseen-beacon-frequency [bound filename]
+  (let [[x y] (find-unseen-beacon bound filename)]
+    (+ (* x 4000000) y)))

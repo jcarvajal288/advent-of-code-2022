@@ -12,5 +12,8 @@
 
 (deftest day15-example-test-part2
   (testing "day15-example-test-part2"
-    (is (= (find-beacon-location 20 "day15-example-data.txt") 56000011))))
+    (is (= (unseen-beacon-frequency 20 "day15-example-data.txt") 56000011))))
 
+(deftest day15-full-test-part2
+  (testing "day15-full-test-part2"
+    (is (= (unseen-beacon-frequency 4000000 "day15-full-data.txt") 13622251246513))))
