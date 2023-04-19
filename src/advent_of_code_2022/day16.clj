@@ -1,9 +1,10 @@
 (ns advent-of-code-2022.day16
   (:require [advent-of-code-2022.util :refer :all]
             [clojure.string :as str]
+            [clojure.math.combinatorics :as cm]
             [taoensso.timbre :as log]
-            [ubergraph.core :as uber]
-            [ubergraph.alg :as alg]))
+            [ubergraph.alg :as alg]
+            [ubergraph.core :as uber]))
 
 (defn parse-input [filename]
   (let [lines (get-resource-file-by-line filename)
@@ -26,59 +27,38 @@
                  (create-graph-node graph next-line))
                (uber/graph))))
 
-;(defn expected-pressure-release [valve-graph open-valves current-valve end-valve minutes-left]
-;  (let [distance-to-node (:cost (alg/shortest-path valve-graph {:start-node current-valve :end-node end-valve}))
-;        flow-rate (:flow-rate (get (:attrs valve-graph) end-valve))]
-;    (* flow-rate (- minutes-left distance-to-node))))
+(defn calculate-all-shortest-paths [valve-graph open-valves]
+  (->> open-valves
+       (cm/subsets)
+       (filter #(= (count %) 2))
+       (map sort)
+       (map #(identity [% (:cost (alg/shortest-path valve-graph {:start-node (first %) :end-node (last %)}))]))
+       (into {})))
 
-; recursively find the pressure released by each valve
-(defn get-highest-pressure-release-valve [valve-graph open-valves current-valve minutes-left]
-  (let [other-valves (remove #(= % current-valve) open-valves)
-        costs-to-other-valves (map #(:cost (alg/shortest-path valve-graph {:start-node current-valve :end-node %})) other-valves)]
-    (->> other-valves
-         (map #(identity [% (get-highest-pressure-release-valve valve-graph other-valves current-valve (- minutes-left (get costs-to-other-valves %)))]))
-         (sort-by last)
-         reverse
-         first
-         first
-         )))
-
-(defn find-path-to-next-valve [valve-graph current-valve open-valves minutes-left]
-  ;(log/info "Open valves: " open-valves)
-  ;(log/info "Closed valves: " (vec (remove (set open-valves) (keys (:node-map valve-graph)))))
-  (let [closed-valves (remove (set open-valves) (keys (:node-map valve-graph)))
-        next-valve (get-highest-pressure-release-valve valve-graph closed-valves current-valve minutes-left)]
-    (concat [current-valve] (map #(:dest %)
-                                 (alg/edges-in-path
-                                   (alg/shortest-path valve-graph {:start-node current-valve :end-node next-valve}))))))
-
-(defn run-simulation [valve-graph path-to-next-valve open-valves total-pressure-released minutes-left]
-  (let [current-valve (first path-to-next-valve)
-        new-pressure-released (apply + (map #(:flow-rate (get (:attrs valve-graph) %)) open-valves))]
-    (log/info (format "== %d minutes left ==" minutes-left))
-    (log/info (format "Valves %s are open, releasing %d pressure" (str/join ", " open-valves) new-pressure-released))
-    (log/info "Path: " (vec path-to-next-valve))
-    (if (> (count path-to-next-valve) 1)
-      (log/info (format "Moving to valve %s" (nth path-to-next-valve 1)))
-      (log/info (format "Opening valve %s" current-valve)))
-    (log/info "")
-    (cond
-      (= minutes-left 0) total-pressure-released
-      (> (count path-to-next-valve) 1) (recur valve-graph
-                                              (rest path-to-next-valve)
-                                              open-valves
-                                              (+ total-pressure-released new-pressure-released)
-                                              (dec minutes-left))
-      :else (let [new-open-valves (conj open-valves current-valve)
-                  new-minutes-left (dec minutes-left)
-                  new-path (find-path-to-next-valve valve-graph current-valve new-open-valves new-minutes-left)]
-              (recur valve-graph
-                     new-path
-                     (conj open-valves current-valve)
-                     (+ total-pressure-released new-pressure-released)
-                     new-minutes-left)))))
+(defn find-optimal-pressure [valve-graph closed-valves shortest-paths current-valve minutes-left total-pressure-released pressure-rate]
+  (let [other-valves (remove #{current-valve} closed-valves)]
+    (if (or (empty? other-valves) (<= minutes-left 0))
+      (+ total-pressure-released (* minutes-left pressure-rate))
+      (let [pressure-list (map (fn [valve]
+                                 (let [minutes-to-valve (inc (get shortest-paths (sort [valve current-valve])))
+                                       minutes-spent (min minutes-left minutes-to-valve)
+                                       valve-pressure-rate (:flow-rate (get (:attrs valve-graph) valve))]
+                                   [valve (find-optimal-pressure
+                                            valve-graph
+                                            (remove #{valve} other-valves)
+                                            shortest-paths
+                                            valve
+                                            (- minutes-left minutes-spent)
+                                            (+ total-pressure-released (* minutes-spent pressure-rate))
+                                            (+ pressure-rate valve-pressure-rate)
+                                            )]))
+                               other-valves)
+            best-valve (last (sort-by last pressure-list))]
+        (last best-valve)))))
 
 (defn most-possible-pressure [filename starting-valve total-minutes]
   (let [valve-graph (construct-valve-graph filename)
-        starting-path (find-path-to-next-valve valve-graph "AA" [] total-minutes)]
-    (run-simulation valve-graph starting-path [] 0 total-minutes)))
+        all-valves (keys (:node-map valve-graph))
+        working-valves (filter #(> (:flow-rate (get (:attrs valve-graph) %)) 0) all-valves)
+        shortest-paths (calculate-all-shortest-paths valve-graph (conj working-valves starting-valve))]
+    (find-optimal-pressure valve-graph working-valves shortest-paths starting-valve total-minutes 0 0)))
