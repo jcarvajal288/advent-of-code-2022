@@ -1,6 +1,5 @@
 (ns advent-of-code-2022.day16
   (:require [advent-of-code-2022.util :refer :all]
-            [clojure.string :as str]
             [clojure.math.combinatorics :as cm]
             [taoensso.timbre :as log]
             [ubergraph.alg :as alg]
@@ -50,8 +49,7 @@
                                             valve
                                             (- minutes-left minutes-spent)
                                             (+ total-pressure-released (* minutes-spent pressure-rate))
-                                            (+ pressure-rate valve-pressure-rate)
-                                            )]))
+                                            (+ pressure-rate valve-pressure-rate))]))
                                other-valves)
             best-valve (last (sort-by last pressure-list))]
         (last best-valve)))))
@@ -61,4 +59,18 @@
         all-valves (keys (:node-map valve-graph))
         working-valves (filter #(> (:flow-rate (get (:attrs valve-graph) %)) 0) all-valves)
         shortest-paths (calculate-all-shortest-paths valve-graph (conj working-valves starting-valve))]
+    (log/info (count working-valves))
     (find-optimal-pressure valve-graph working-valves shortest-paths starting-valve total-minutes 0 0)))
+
+(defn most-possible-pressure-with-elephant [filename starting-valve total-minutes]
+  (let [valve-graph (construct-valve-graph filename)
+        all-valves (keys (:node-map valve-graph))
+        working-valves (filter #(> (:flow-rate (get (:attrs valve-graph) %)) 0) all-valves)
+        shortest-paths (calculate-all-shortest-paths valve-graph (conj working-valves starting-valve))]
+    (log/info (count working-valves))
+    (->> (cm/combinations working-valves (quot (count working-valves) 2))
+         (map #(identity [(find-optimal-pressure valve-graph % shortest-paths starting-valve total-minutes 0 0)
+                         (find-optimal-pressure valve-graph (remove (set %) working-valves) shortest-paths starting-valve total-minutes 0 0)]))
+         (map #(reduce + %))
+         sort
+         last)))
